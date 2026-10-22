@@ -28,6 +28,7 @@ type Encoder struct {
 	tableSizeUpdate bool
 	w               io.Writer
 	buf             []byte
+	firefox         bool
 }
 
 // NewEncoder returns a new Encoder which performs HPACK encoding. An
@@ -59,19 +60,23 @@ func (e *Encoder) WriteField(f HeaderField) error {
 		e.buf = appendTableSize(e.buf, e.dynTab.maxSize)
 	}
 
-	idx, nameValueMatch := e.searchTable(f)
-	if nameValueMatch {
-		e.buf = appendIndexed(e.buf, idx)
+	if e.firefox {
+		e.writeFirefoxField(f)
 	} else {
-		indexing := e.shouldIndex(f)
-		if indexing {
-			e.dynTab.add(f)
-		}
-
-		if idx == 0 {
-			e.buf = appendNewName(e.buf, f, indexing)
+		idx, nameValueMatch := e.searchTable(f)
+		if nameValueMatch {
+			e.buf = appendIndexed(e.buf, idx)
 		} else {
-			e.buf = appendIndexedName(e.buf, f, idx, indexing)
+			indexing := e.shouldIndex(f)
+			if indexing {
+				e.dynTab.add(f)
+			}
+
+			if idx == 0 {
+				e.buf = appendNewName(e.buf, f, indexing)
+			} else {
+				e.buf = appendIndexedName(e.buf, f, idx, indexing)
+			}
 		}
 	}
 	n, err := e.w.Write(e.buf)

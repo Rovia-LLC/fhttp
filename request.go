@@ -166,6 +166,12 @@ type Request struct {
 	// for the Request.Write method.
 	Header Header
 
+	// UseFirefoxHPACK selects the measured Firefox 151 compression policy when
+	// this request is sent through fhttp/http2.Transport. Header values, ordering
+	// and connection settings are unchanged. The zero value retains the default
+	// HPACK encoder. The policy also applies to this request's trailers.
+	UseFirefoxHPACK bool
+
 	// Body is the request's body.
 	//
 	// For client requests, a nil body means the request has no

@@ -1922,6 +1922,7 @@ func (cc *ClientConn) encodeHeaders(req *http.Request, addGzipHeader bool, trail
 	traceHeaders := traceHasWroteHeaderField(trace)
 
 	// Header list size is ok. Write the headers.
+	cc.henc.SetFirefoxEncoding(req.UseFirefoxHPACK)
 	enumerateHeaders(func(name, value string) {
 		// skips over writing magic key headers
 		if name == http.PHeaderOrderKey || name == http.HeaderOrderKey {
@@ -1975,6 +1976,7 @@ func (cc *ClientConn) encodeTrailers(req *http.Request) ([]byte, error) {
 		return nil, errRequestHeaderListSize
 	}
 
+	cc.henc.SetFirefoxEncoding(req.UseFirefoxHPACK)
 	for k, vv := range req.Trailer {
 		// Transfer-Encoding, etc.. have already been filtered at the
 		// start of RoundTrip
