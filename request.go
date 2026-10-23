@@ -172,6 +172,12 @@ type Request struct {
 	// HPACK encoder. The policy also applies to this request's trailers.
 	UseFirefoxHPACK bool
 
+	// HTTP2Weight optionally overrides only the initial HEADERS frame's stream
+	// weight. Nonzero values are encoded HTTP/2 weights (1..255 means 2..256); zero
+	// retains the transport profile's priority. It does not change client pacing,
+	// the Priority header, connection settings or trailer frames.
+	HTTP2Weight uint8
+
 	// Body is the request's body.
 	//
 	// For client requests, a nil body means the request has no
