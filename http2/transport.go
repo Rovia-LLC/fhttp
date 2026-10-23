@@ -1425,7 +1425,7 @@ func (cc *ClientConn) awaitOpenSlotForRequest(req *http.Request) error {
 }
 
 // requires cc.wmu be held
-func (cc *ClientConn) writeHeaders(streamID uint32, endStream bool, maxFrameSize int, hdrs []byte, weight *uint8) error {
+func (cc *ClientConn) writeHeaders(streamID uint32, endStream bool, maxFrameSize int, hdrs []byte, weight uint8) error {
 	first := true // first frame written (HEADERS is first, then CONTINUATION)
 	for len(hdrs) > 0 && cc.werr == nil {
 		chunk := hdrs
@@ -1444,8 +1444,8 @@ func (cc *ClientConn) writeHeaders(streamID uint32, endStream bool, maxFrameSize
 			if cc.t.HeaderPriority != nil {
 				defaultHeaderPriorityParam = *cc.t.HeaderPriority
 			}
-			if weight != nil {
-				defaultHeaderPriorityParam.Weight = *weight
+			if weight != 0 {
+				defaultHeaderPriorityParam.Weight = weight
 			}
 
 			cc.fr.WriteHeaders(HeadersFrameParam{
@@ -1659,7 +1659,7 @@ func (cs *clientStream) writeRequestBody(body io.Reader, bodyCloser io.Closer) (
 	// Two ways to send END_STREAM: either with trailers, or
 	// with an empty DATA frame.
 	if len(trls) > 0 {
-		err = cc.writeHeaders(cs.ID, true, maxFrameSize, trls, nil)
+		err = cc.writeHeaders(cs.ID, true, maxFrameSize, trls, 0)
 	} else {
 		err = cc.fr.WriteData(cs.ID, true, nil)
 	}

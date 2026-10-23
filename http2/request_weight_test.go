@@ -12,7 +12,7 @@ import (
 func TestTransportRequestWeight(t *testing.T) {
 	ct := newClientTester(t)
 	ct.tr.HeaderPriority = &PriorityParam{Weight: 41}
-	weights := []*uint8{nil, requestWeight(21), requestWeight(0), requestWeight(255), nil}
+	weights := []uint8{0, 21, 255, 0}
 	ct.client = func() error {
 		for _, weight := range weights {
 			req, _ := http.NewRequest("GET", "https://dummy.tld/", nil)
@@ -41,10 +41,10 @@ func TestTransportRequestWeight(t *testing.T) {
 				continue
 			}
 			want := uint8(41)
-			if weights[request] != nil {
-				want = *weights[request]
+			if weights[request] != 0 {
+				want = weights[request]
 			}
-			if headers.Priority.Weight != want || headers.Priority.StreamDep != 0 || headers.Priority.Exclusive {
+			if !headers.HasPriority() || headers.Priority.Weight != want || headers.Priority.StreamDep != 0 || headers.Priority.Exclusive {
 				return fmt.Errorf("request %d priority %+v, want weight %d and unchanged dependency/exclusivity", request, headers.Priority, want)
 			}
 			var response bytes.Buffer
@@ -59,5 +59,3 @@ func TestTransportRequestWeight(t *testing.T) {
 	}
 	ct.run()
 }
-
-func requestWeight(value uint8) *uint8 { return &value }
